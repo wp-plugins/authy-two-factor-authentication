@@ -9,10 +9,10 @@ Tested from WordPress version 3.0 to 3.5
 
 ## Installation
 
-1. Get your Authy API Key at www.authy.com/signup.
+1. Get your Authy API Key at [www.authy.com/signup](www.authy.com/signup).
 2. Install the plugin either via your site's dashboard, or by downloading the plugin from WordPress.org and uploading the files to your server.
 3. Activate plugin through the WordPress Plugins menu.
-4. Navigate to Settings > Authy for WP to enter your Authy API keys.
+4. Navigate to Settings -> Authy for WP to enter your Authy API keys.
 
 
 ## Frequently Asked Questions
