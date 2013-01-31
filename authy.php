@@ -4,7 +4,7 @@
  * Plugin URI: https://github.com/authy/authy-wordpress
  * Description: Add <a href="http://www.authy.com/">Authy</a> two-factor authentication to WordPress.
  * Author: Authy Inc
- * Version: 1.0
+ * Version: 1.1
  * Author URI: https://www.authy.com
  * License: GPL2+
  * Text Domain: authy
@@ -52,6 +52,7 @@ class Authy {
 	// Data storage keys
 	protected $settings_key = 'authy';
 	protected $users_key = 'authy_user';
+	protected $signature_key = 'user_signature';
 
 	// Settings field placeholders
 	protected $settings_fields = array();
@@ -798,7 +799,7 @@ class Authy {
 	*/
 	public function check_user_fields(&$errors, $update, &$user) {
 		$response = $this->api->register_user( $_POST['email'], $_POST['authy_user']['phone'], $_POST['authy_user']['country_code'] );
-		if ($response->errors) {
+		if ($update && $response->errors) {
 			foreach ($response->errors as $attr => $message) {
 
 				if ($attr == 'country_code')
@@ -1043,6 +1044,7 @@ class Authy {
 	public function authy_token_form($user, $redirect) {
     $username = $user->user_login;
     $user_data = $this->get_authy_data( $user->ID );
+	$user_signature = get_user_meta($user->ID, $this->signature_key, true);
     ?>
 		<html>
 			<head>
@@ -1074,6 +1076,9 @@ class Authy {
 						<input type="text" name="authy_token" id="authy-token" class="input" value="" size="20"></label>
 						<input type="hidden" name="redirect_to" value="<?php echo esc_attr($redirect); ?>"/>
 						<input type="hidden" name="username" value="<?php echo esc_attr($username); ?>"/>
+						<?php if(isset($user_signature['authy_signature']) && isset($user_signature['signed_at']) ) { ?>
+							<input type="hidden" name="authy_signature" value="<?php echo esc_attr($user_signature['authy_signature']); ?>"/>
+						<?php } ?>
 						<p class="submit">
 						  <input type="submit" value="<?php echo _e('Login', 'authy') ?>" id="wp_submit" class="button button-primary button-large">
 						</p>
@@ -1093,31 +1098,40 @@ class Authy {
 	*/
 
 	public function authenticate_user($user="", $username="", $password="") {
-		// If the method isn't supported, stop.
+		// If the method isn't supported, stop:
 		if ( ( defined( 'XMLRPC_REQUEST' ) && XMLRPC_REQUEST ) || ( defined( 'APP_REQUEST' ) && APP_REQUEST ) )
 			return $user;
 
-		if (isset( $_POST['authy_token'] )) {
+		if (isset($_POST['authy_signature']) && isset( $_POST['authy_token'] )) {
+			$user = get_user_by('login', $_POST['username']);
+
+			// This line prevents WordPress from setting the authentication cookie and display errors.
 			remove_action('authenticate', 'wp_authenticate_username_password', 20);
 
-			// Check the specified token
-			$user = get_user_by('login', $_POST['username']);
-			$authy_id = $this->get_user_authy_id( $user->ID );
-			$authy_token = preg_replace( '#[^\d]#', '', $_POST['authy_token'] );
-			$api_check = $this->api->check_token( $authy_id, $authy_token );
+			// Do 2FA if signature is valid.
+			if($this->api->verify_signature(get_user_meta($user->ID, $this->signature_key, true), $_POST['authy_signature'])) {
+				// invalidate signature
+				update_user_meta($user->ID, $this->signature_key, array("authy_signature" => $this->api->generate_signature(), "signed_at" => null));
 
-			// Act on API response
-			if ( $api_check === false )
-				return null;
-			elseif ( is_string( $api_check ) )
-				return new WP_Error( 'authentication_failed', __('<strong>ERROR</strong>: ' . $api_check ) );
+				// Check the specified token
+				$authy_id = $this->get_user_authy_id( $user->ID );
+				$authy_token = preg_replace( '#[^\d]#', '', $_POST['authy_token'] );
+				$api_check = $this->api->check_token( $authy_id, $authy_token);
 
-			wp_set_auth_cookie($user->ID);
-			wp_safe_redirect($_POST['redirect_to']);
-			exit();
+				// Act on API response
+				if ( $api_check === true ) {
+					wp_set_auth_cookie($user->ID);
+					wp_safe_redirect($_POST['redirect_to']);
+					exit(); // redirect without returning anything.
+				} elseif ( is_string( $api_check ) ) {
+					return new WP_Error( 'authentication_failed', __('<strong>ERROR</strong>: ' . $api_check ) );
+				}
+			}
+
+			return new WP_Error( 'authentication_failed', __('<strong>ERROR</strong> Authentication timed out. Please try again.'));
 		}
 
-		// If have a username
+		// If have a username do password authentication and redirect to 2nd screen.
 		if (! empty( $username )) {
 			$userWP = get_user_by('login', $username);
 
@@ -1127,20 +1141,29 @@ class Authy {
 
 			// User must opt in.
 			if ( ! $this->user_has_authy_id( $userWP->ID ))
-				return $user;
+				return $user; // wordpress will continue authentication.
 
+			// from here we take care of the authentication.
 			remove_action('authenticate', 'wp_authenticate_username_password', 20);
 
-			$user = wp_authenticate_username_password($user, $username, $password);
+			$ret = wp_authenticate_username_password($user, $username, $password);
+			if(is_wp_error($ret)) {
+				// there was an error
+				return $ret;
+			}
+
+			$user = $ret;
 
 			if (!is_wp_error($user)) {
+				// with authy
+				update_user_meta($user->ID, $this->signature_key, array("authy_signature" => $this->api->generate_signature(), "signed_at" => time()));
 				$this->action_request_sms($username);
 				$this->authy_token_form($user, $_POST['redirect_to']);
 				exit();
-			}else{
-				return $user;
 			}
 		}
+
+		return new WP_Error('authentication_failed', __('<strong>ERROR</strong>') );
 	}
 }
 

@@ -3,7 +3,7 @@ Contributors: authy, ethitter
 Tags: authentication, authy, two factor, security, login, authenticate
 Requires at least: 3.0
 Tested up to: 3.5
-Stable tag: 1.0
+Stable tag: 1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -41,6 +41,9 @@ The admin should go to users page, select the user in the list, edit user adding
 1. Authy Two-Factor Authentication page.
 
 == Changelog ==
+
+= 1.1 =
+Fix reported issues and refactor code
 
 = 1.0 =
 * Initial public release.
