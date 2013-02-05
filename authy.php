@@ -1069,7 +1069,7 @@ class Authy {
 				<div id="login">
 					<h1><a href="http://wordpress.org/" title="Powered by WordPress"><?php echo get_bloginfo('name'); ?></a></h1>
 					<h3 style="text-align: center; margin-bottom:10px;">Authy Two-Factor Authentication</h3>
-					<p class="message"><?php _e("You can get this token from the Authy mobile app. If you are not using the Authy app we've automatically send you a token via text-message to cellphone number: ", 'authy'); ?><strong><?php echo $user_data['phone']; ?></strong></p>
+					<p class="message"><?php _e("You can get this token from the Authy mobile app. If you are not using the Authy app we've automatically sent you a token via text-message to cellphone number: ", 'authy'); ?><strong><?php echo $user_data['phone']; ?></strong></p>
 
 					<form method="POST" id="authy" action="wp-login.php">
 						<label for="authy_token"><?php _e( 'Authy Token', 'authy' ); ?><br>
