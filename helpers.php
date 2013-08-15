@@ -67,7 +67,7 @@ function authy_token_form( $username, $user_data, $user_signature, $redirect ) {
           <label for="authy_token">
             <?php _e( 'Authy Token', 'authy' ); ?>
             <br>
-            <input type="text" name="authy_token" id="authy-token" class="input" value="" size="20" />
+            <input type="text" name="authy_token" id="authy-token" class="input" value="" size="20" autofocus="true" />
           </label>
           <input type="hidden" name="redirect_to" value="<?php echo esc_attr( $redirect ); ?>"/>
           <input type="hidden" name="username" value="<?php echo esc_attr( $username ); ?>"/>
