@@ -4,7 +4,7 @@
  * Plugin URI: https://github.com/authy/authy-wordpress
  * Description: Add <a href="http://www.authy.com/">Authy</a> two-factor authentication to WordPress.
  * Author: Authy Inc
- * Version: 2.3
+ * Version: 2.4
  * Author URI: https://www.authy.com
  * License: GPL2+
  * Text Domain: authy
@@ -283,7 +283,7 @@ class Authy {
     public function action_admin_notices() {
         $response = $this->api->curl_ca_certificates();
         if ( is_string( $response ) ) {
-            ?><div id="message" class="error"><p><strong>Error:</strong><?php echo esc_attr( $response ); ?></p></div><?php
+            ?><div id="message" class="error"><p><strong>Error:</strong><?php echo $response; ?></p></div><?php
         }
     }
 
@@ -1067,7 +1067,6 @@ class Authy {
      */
     public function verify_password_and_redirect( $user, $username, $password, $redirect_to ) {
         $userWP = get_user_by( 'login', $username );
-
         // Don't bother if WP can't provide a user object.
         if ( ! is_object( $userWP ) || ! property_exists( $userWP, 'ID' ) ) {
             return $userWP;
@@ -1105,7 +1104,7 @@ class Authy {
      * @param mixed $user
      * @return mixed
      */
-    public function login_with_2FA( $user, $signature, $authy_token, $redirect_to ) {
+    public function login_with_2FA( $user, $signature, $authy_token, $redirect_to, $remember_me ) {
         // Do 2FA if signature is valid.
         if ( $this->api->verify_signature( get_user_meta( $user->ID, $this->signature_key, true ), $signature ) ) {
             // invalidate signature
@@ -1118,7 +1117,10 @@ class Authy {
 
             // Act on API response
             if ( $api_response === true ) {
-                wp_set_auth_cookie( $user->ID ); // token was checked so go ahead.
+                // If remember me is set the cookies will be kept for 14 days.
+                $remember_me = ($remember_me == 'forever') ? true : false;
+
+                wp_set_auth_cookie( $user->ID, $remember_me ); // token was checked so go ahead.
                 wp_safe_redirect( $redirect_to );
                 exit(); // redirect without returning anything.
             } elseif ( is_string( $api_response ) ) {
@@ -1257,7 +1259,7 @@ class Authy {
             // This line prevents WordPress from setting the authentication cookie and display errors.
             remove_action( 'authenticate', 'wp_authenticate_username_password', 20 );
 
-            return $this->login_with_2FA( $user, $signature, $_POST['authy_token'], $_POST['redirect_to'] );
+            return $this->login_with_2FA( $user, $signature, $_POST['authy_token'], $_POST['redirect_to'], $_POST['rememberme'] );
         }
         elseif ( $step == 'enable_authy' && isset($authy_user_info) && isset( $authy_user_info['country_code'] ) && isset( $authy_user_info['cellphone'] ) )
         {
