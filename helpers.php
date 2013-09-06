@@ -41,7 +41,7 @@ function authy_header( $step = '' ) { ?>
  * @return string
  */
 
-function authy_token_form( $username, $user_data, $user_signature, $redirect ) {?>
+function authy_token_form( $username, $user_data, $user_signature, $redirect, $remember_me ) {?>
   <html>
     <?php echo authy_header(); ?>
     <body class='login wp-core-ui'>
@@ -71,6 +71,7 @@ function authy_token_form( $username, $user_data, $user_signature, $redirect ) {
           </label>
           <input type="hidden" name="redirect_to" value="<?php echo esc_attr( $redirect ); ?>"/>
           <input type="hidden" name="username" value="<?php echo esc_attr( $username ); ?>"/>
+          <input type="hidden" name="rememberme" value="<?php echo esc_attr( $remember_me ); ?>"/>
           <?php if ( isset( $user_signature['authy_signature'] ) && isset( $user_signature['signed_at'] ) ) { ?>
             <input type="hidden" name="authy_signature" value="<?php echo esc_attr( $user_signature['authy_signature'] ); ?>"/>
           <?php } ?>

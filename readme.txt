@@ -3,7 +3,7 @@ Contributors: authy, ethitter
 Tags: authentication, authy, two factor, security, login, authenticate
 Requires at least: 3.0
 Tested up to: 3.6
-Stable tag: 2.4
+Stable tag: 2.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -41,6 +41,10 @@ As an admin, you can go to the users page. Then, select the user in the list, an
 1. Authy Two-Factor Authentication page.
 
 == Changelog ==
+
+= 2.5 =
+* Improved the remember me option in the user authentication
+* Use manage_option capability for display the plugin settings page.
 
 = 2.4 =
 * Use the remember me option when authenticate the user
