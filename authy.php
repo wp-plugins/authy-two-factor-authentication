@@ -4,7 +4,7 @@
  * Plugin URI: https://github.com/authy/authy-wordpress
  * Description: Add <a href="http://www.authy.com/">Authy</a> two-factor authentication to WordPress.
  * Author: Authy Inc
- * Version: 2.4
+ * Version: 2.5
  * Author URI: https://www.authy.com
  * License: GPL2+
  * Text Domain: authy
@@ -219,7 +219,7 @@ class Authy {
         $show_settings = false;
         $can_admin_network = is_plugin_active_for_network( 'authy-two-factor-authentication/authy.php' ) && current_user_can( 'network_admin' );
 
-        if ( $can_admin_network || current_user_can( 'edit_plugins' ) ) {
+        if ( $can_admin_network || current_user_can( 'manage_options' ) ) {
             $show_settings = true;
         }
 
@@ -1033,11 +1033,11 @@ class Authy {
      * @uses _e
      * @return string
      */
-    public function render_authy_token_page( $user, $redirect ) {
+    public function render_authy_token_page( $user, $redirect, $remember_me ) {
         $username = $user->user_login;
         $user_data = $this->get_authy_data( $user->ID );
         $user_signature = get_user_meta( $user->ID, $this->signature_key, true );
-        authy_token_form( $username, $user_data, $user_signature, $redirect, $errors );
+        authy_token_form( $username, $user_data, $user_signature, $redirect, $remember_me );
     }
 
     /**
@@ -1065,7 +1065,7 @@ class Authy {
      * @param string $redirect_to
      * @return mixed
      */
-    public function verify_password_and_redirect( $user, $username, $password, $redirect_to ) {
+    public function verify_password_and_redirect( $user, $username, $password, $redirect_to, $remember_me ) {
         $userWP = get_user_by( 'login', $username );
         // Don't bother if WP can't provide a user object.
         if ( ! is_object( $userWP ) || ! property_exists( $userWP, 'ID' ) ) {
@@ -1092,7 +1092,7 @@ class Authy {
             render_enable_authy_page( $userWP, $signature ); // Show the enable authy page
         } else {
             $this->action_request_sms( $username ); // Send sms
-            $this->render_authy_token_page( $user, $redirect_to ); // Show the authy token page
+            $this->render_authy_token_page( $user, $redirect_to, $remember_me ); // Show the authy token page
         }
         exit();
     }
@@ -1119,7 +1119,6 @@ class Authy {
             if ( $api_response === true ) {
                 // If remember me is set the cookies will be kept for 14 days.
                 $remember_me = ($remember_me == 'forever') ? true : false;
-
                 wp_set_auth_cookie( $user->ID, $remember_me ); // token was checked so go ahead.
                 wp_safe_redirect( $redirect_to );
                 exit(); // redirect without returning anything.
@@ -1241,27 +1240,31 @@ class Authy {
             return $user;
         }
 
-        $step = $_POST['step'];
-        $signature = $_POST['authy_signature'];
-        $authy_user_info = $_POST['authy_user'];
+        $step = isset( $_POST['step'] ) ? $_POST['step'] : null;
+        $signature = isset( $_POST['authy_signature'] ) ? $_POST['authy_signature'] : null;
+        $authy_user_info = isset( $_POST['authy_user'] ) ? $_POST['authy_user'] : null;
+        $remember_me = isset( $_POST['rememberme'] ) ? $_POST['rememberme'] : null;
 
         if ( !empty( $username ) ) {
-            return $this->verify_password_and_redirect( $user, $username, $password, $_POST['redirect_to'] );
+            return $this->verify_password_and_redirect( $user, $username, $password, $_POST['redirect_to'], $remember_me );
         }
 
         if( !isset( $signature ) ) {
             return new WP_Error( 'authentication_failed', __( '<strong>ERROR: missing credentials</strong>' ) );
         }
 
-        if ( empty( $step ) && isset( $_POST['authy_token'] ) )
+        $authy_token = isset( $_POST['authy_token'] ) ? $_POST['authy_token'] : null;
+
+        if ( empty( $step ) && $authy_token )
         {
             $user = get_user_by( 'login', $_POST['username'] );
             // This line prevents WordPress from setting the authentication cookie and display errors.
             remove_action( 'authenticate', 'wp_authenticate_username_password', 20 );
 
-            return $this->login_with_2FA( $user, $signature, $_POST['authy_token'], $_POST['redirect_to'], $_POST['rememberme'] );
+            $redirect_to = isset( $_POST['redirect_to'] ) ? $_POST['redirect_to'] : null;
+            return $this->login_with_2FA( $user, $signature, $authy_token, $redirect_to, $remember_me );
         }
-        elseif ( $step == 'enable_authy' && isset($authy_user_info) && isset( $authy_user_info['country_code'] ) && isset( $authy_user_info['cellphone'] ) )
+        elseif ( $step == 'enable_authy' && $authy_user_info && isset( $authy_user_info['country_code'] ) && isset( $authy_user_info['cellphone'] ) )
         {
             // if step is enable_authy and have country_code and phone show the enable authy page
             $params = array(
@@ -1273,12 +1276,12 @@ class Authy {
 
             return $this->check_user_fields_and_redirect_to_verify_token( $params );
         }
-        elseif ( $step == 'verify_installation' && isset( $_POST['authy_token'] ) )
+        elseif ( $step == 'verify_installation' && $authy_token )
         {
             // If step is verify_installation and have authy_token show the verify authy installation page.
             $params = array(
                 'username' => $_POST['username'],
-                'authy_token' => $_POST['authy_token'],
+                'authy_token' => $authy_token,
                 'signature' => $signature,
             );
 

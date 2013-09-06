@@ -4,7 +4,7 @@ This pluging add's [Authy](http://www.authy.com) two-factor authentication to Wo
 
 With Authy you can control all aspects of Two Factor Authentication for your WordPress Blog.
 
-Tested from WordPress version 3.0 to 3.5
+Tested from WordPress version 3.0 to 3.6
 
 ## Installation
 
