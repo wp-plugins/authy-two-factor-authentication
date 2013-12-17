@@ -4,7 +4,7 @@
  * Plugin URI: https://github.com/authy/authy-wordpress
  * Description: Add <a href="http://www.authy.com/">Authy</a> two-factor authentication to WordPress.
  * Author: Authy Inc
- * Version: 2.5
+ * Version: 2.5.1
  * Author URI: https://www.authy.com
  * License: GPL2+
  * Text Domain: authy
@@ -135,7 +135,7 @@ class Authy {
             add_filter( 'authenticate', array( $this, 'authenticate_user' ), 10, 3 );
 
             // Disable XML-RPC
-            if ( $this->get_setting( 'disable_xmlrpc' ) ) {
+            if ( $this->get_setting( 'disable_xmlrpc' ) == "true") {
                 add_filter( 'xmlrpc_enabled', '__return_false' );
             }
 
@@ -297,12 +297,12 @@ class Authy {
     public function get_setting( $key ) {
         $value = false;
 
-        if ( is_null( $this->settings ) || ! is_array( $this->settings ) ) {
+        if ( is_null( $this->settings ) || !is_array( $this->settings ) ) {
             $this->settings = get_option( $this->settings_key );
             $this->settings = wp_parse_args( $this->settings, array(
                 'api_key_production'  => '',
                 'environment'         => apply_filters( 'authy_environment', 'production' ),
-                'disable_xmlrpc'      => false,
+                'disable_xmlrpc'      => "true",
             ) );
         }
 
@@ -414,7 +414,12 @@ class Authy {
     * @return string
     */
     public function add_settings_disable_xmlrpc() {
-        $value = $this->get_setting( 'disable_xmlrpc' );
+        if ( $this->get_setting( 'disable_xmlrpc' ) == "false" ) {
+            $value = false;
+        } else {
+            $value = true;
+        }
+
         ?>
             <label for='<?php echo esc_attr( $this->settings_key ); ?>[disable_xmlrpc]'>
                 <input name="<?php echo esc_attr( $this->settings_key ); ?>[disable_xmlrpc]" type="checkbox" value="true" <?php if ($value) echo 'checked="checked"'; ?> >
@@ -498,21 +503,26 @@ class Authy {
         foreach ( $this->settings_fields as $field ) {
             $field = wp_parse_args( $field, $this->settings_field_defaults );
 
-            if ( ! isset( $settings[ $field['name'] ] ) ) {
+            if ( !isset( $settings[ $field['name'] ] ) && $field['type'] != 'checkbox' ) {
                 continue;
             }
 
             if ( $field['type'] === "text" && $field['sanitizer'] === 'alphanumeric' ) {
                 $value = preg_replace( '#[^a-z0-9]#i', '', $settings[ $field['name' ] ] );
+            } elseif ( $field['type'] == "checkbox" ) {
+                $value = $settings[ $field['name'] ];
+
+                if ( $value != "true" ) {
+                    $value = "false";
+                }
             } else {
                 $value = sanitize_text_field( $settings[ $field['name'] ] );
             }
 
-            if ( isset( $value ) && ! empty( $value ) ) {
+            if ( isset( $value ) && !empty( $value ) ) {
                 $settings_validated[ $field['name'] ] = $value;
             }
         }
-
         return $settings_validated;
     }
 
@@ -1249,7 +1259,7 @@ class Authy {
             return $this->verify_password_and_redirect( $user, $username, $password, $_POST['redirect_to'], $remember_me );
         }
 
-        if( !isset( $signature ) ) {
+        if( !empty($_POST) && !isset( $signature ) ) {
             return new WP_Error( 'authentication_failed', __( '<strong>ERROR: missing credentials</strong>' ) );
         }
 
@@ -1287,8 +1297,6 @@ class Authy {
 
             return $this->verify_authy_installation( $params );
         }
-
-        return new WP_Error( 'authentication_failed', __( '<strong>ERROR</strong>' ) );
     }
 }
 

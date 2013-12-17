@@ -3,7 +3,7 @@ Contributors: authy, ethitter
 Tags: authentication, authy, two factor, security, login, authenticate
 Requires at least: 3.0
 Tested up to: 3.8
-Stable tag: 2.5
+Stable tag: 2.5.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -42,34 +42,38 @@ As an admin, you can go to the users page. Then, select the user in the list, an
 
 == Changelog ==
 
+= 2.5.1 =
+* Improved settings for disable/enable XML-RPC requests.
+* Fix error message: Missing credentials, only display when the user tries to verify an authy token without signature.
+
 = 2.5 =
-* Improved the remember me option in the user authentication
+* Improved the remember me option in the user authentication.
 * Use manage_option capability for display the plugin settings page.
 
 = 2.4 =
-* Use the remember me option when authenticate the user
+* Use the remember me option when authenticate the user.
 
 = 2.3 =
 * Hide the authy settings page for other users except for super admin (multisite)
 
 = 2.2 =
-* Hide some digits of the cellphone
+* Hide some digits of the cellphone.
 
 = 2.1 =
-* Added missing images
+* Added missing images.
 
 = 2.0 =
 * Refactor code
-* The admin can now force a user to enable Authy on next login
+* The admin can now force a user to enable Authy on next login.
 
 = 1.3 =
-* Display API errors when try to register a user
+* Display API errors when try to register a user.
 
 = 1.2 =
-* Fix update user profile and verify SSL certificates
+* Fix update user profile and verify SSL certificates.
 
 = 1.1 =
-* Fix reported issues and refactor code
+* Fix reported issues and refactor code.
 
 = 1.0 =
 * Initial public release.
