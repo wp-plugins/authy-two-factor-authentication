@@ -70,10 +70,10 @@ class Authy_API {
     // Build API endpoint
     $endpoint = sprintf( '%s/protected/json/users/new', $this->api_endpoint );
     $endpoint = add_query_arg( array(
-      'api_key' => $this->api_key,
-      'user[email]' => $email,
-      'user[cellphone]' => $phone,
-      'user[country_code]' => $country_code
+      'api_key' => rawurlencode($this->api_key),
+      'user[email]' => rawurlencode($email),
+      'user[cellphone]' => rawurlencode($phone),
+      'user[country_code]' => rawurlencode($country_code)
     ), $endpoint );
 
     // Make API request and parse response
@@ -104,7 +104,7 @@ class Authy_API {
     // Token must be a string because it can have leading zeros
     $endpoint = sprintf( '%s/protected/json/verify/%s/%d', $this->api_endpoint, $token, $id );
     $endpoint = add_query_arg( array(
-      'api_key' => $this->api_key,
+      'api_key' => rawurlencode($this->api_key),
       'force' => 'true'
     ), $endpoint );
 
@@ -134,7 +134,7 @@ class Authy_API {
 
   public function request_sms($id, $force) {
     $endpoint = sprintf( '%s/protected/json/sms/%d', $this->api_endpoint, $id );
-    $arguments = array('api_key' => $this->api_key);
+    $arguments = array('api_key' => rawurlencode($this->api_key));
 
     if ($force == true) {
       $arguments['force'] = 'true';
@@ -159,7 +159,7 @@ class Authy_API {
   */
   public function application_details() {
     $endpoint = sprintf( '%s/protected/json/app/details', $this->api_endpoint );
-    $endpoint = add_query_arg( array('api_key' => $this->api_key), $endpoint);
+    $endpoint = add_query_arg( array('api_key' => rawurlencode($this->api_key)), $endpoint);
     $response = wp_remote_get($endpoint);
 
     $status_code = wp_remote_retrieve_response_code($response);
