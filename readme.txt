@@ -3,7 +3,7 @@ Contributors: authy, ethitter
 Tags: authentication, authy, two factor, security, login, authenticate
 Requires at least: 3.0
 Tested up to: 3.8
-Stable tag: 2.5.1
+Stable tag: 2.5.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -41,6 +41,9 @@ As an admin, you can go to the users page. Then, select the user in the list, an
 1. Authy Two-Factor Authentication page.
 
 == Changelog ==
+
+= 2.5.2 =
+* Encode the values on query before to sending to Authy API
 
 = 2.5.1 =
 * Improved settings for disable/enable XML-RPC requests.
