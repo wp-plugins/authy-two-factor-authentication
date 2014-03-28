@@ -11,11 +11,9 @@ function authy_header( $step = '' ) { ?>
         <link rel="stylesheet" type="text/css" href="<?php echo admin_url( 'css/colors-fresh.css' ); ?>" />
         <?php
       } else {
-        ?>
-        <link rel="stylesheet" type="text/css" href="<?php echo admin_url( 'css/wp-admin.css' ); ?>" />
-        <link rel="stylesheet" type="text/css" href="<?php echo includes_url( 'css/buttons.css' ); ?>" />
-        <link rel="stylesheet" type="text/css" href="<?php echo admin_url( 'css/colors-fresh.css' ); ?>" />
-        <?php
+        wp_admin_css("wp-admin", true);
+        wp_admin_css("buttons", true);
+        wp_admin_css("colors-fresh", true);
       }
     ?>
     <link href="https://www.authy.com/form.authy.min.css" media="screen" rel="stylesheet" type="text/css">
@@ -27,7 +25,7 @@ function authy_header( $step = '' ) { ?>
         var AuthyAjax = {"ajaxurl":"<?php echo admin_url( 'admin-ajax.php' ); ?>"};
         /* ]]> */
         </script>
-        <script src="<?php echo admin_url( 'load-scripts.php?c=1&load=jquery,utils' ); ?>" type="text/javascript"></script>
+        <?php wp_print_scripts( array( 'jquery', 'utils') ); ?>
         <script src="<?php echo plugins_url( 'assets/authy-installation.js', __FILE__ ); ?>" type="text/javascript"></script>
     <?php } ?>
   </head>
