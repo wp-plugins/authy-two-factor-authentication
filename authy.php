@@ -4,7 +4,7 @@
  * Plugin URI: https://github.com/authy/authy-wordpress
  * Description: Add <a href="http://www.authy.com/">Authy</a> two-factor authentication to WordPress.
  * Author: Authy Inc
- * Version: 2.5.2
+ * Version: 2.5.3
  * Author URI: https://www.authy.com
  * License: GPL2+
  * Text Domain: authy
@@ -113,6 +113,9 @@ class Authy {
         $this->register_settings_fields();
         $this->prepare_api();
 
+        // Loads the plugin's translated strings.
+        load_plugin_textdomain('authy', false, dirname( plugin_basename( __FILE__ ) ).'/languages' );
+
         // Plugin settings
         add_action( 'admin_init', array( $this, 'action_admin_init' ) );
         add_action( 'admin_menu', array( $this, 'action_admin_menu' ) );
@@ -164,7 +167,7 @@ class Authy {
             ),
             array(
                 'name'      => 'disable_xmlrpc',
-                'label'     => __( "Disable external apps that don't support Two-factor Authentication", 'authy_wp' ),
+                'label'     => __( "Disable external apps that don't support Two-factor Authentication", 'authy' ),
                 'type'      => 'checkbox',
                 'sanitizer' => null,
             ),
@@ -465,7 +468,7 @@ class Authy {
               </form>
 
               <?php if ( !empty( $details ) ) { ?>
-                <h2>Application Details</h2>
+                <h2><?php _e( 'Application Details', 'authy' ); ?></h2>
 
                 <table class='widefat' style="width:400px;">
                     <tbody>
@@ -1260,7 +1263,7 @@ class Authy {
         }
 
         if( !empty($_POST) && !isset( $signature ) ) {
-            return new WP_Error( 'authentication_failed', __( '<strong>ERROR: missing credentials</strong>' ) );
+            return new WP_Error( 'authentication_failed', __( '<strong>ERROR: missing credentials</strong>', 'authy' ) );
         }
 
         $authy_token = isset( $_POST['authy_token'] ) ? $_POST['authy_token'] : null;

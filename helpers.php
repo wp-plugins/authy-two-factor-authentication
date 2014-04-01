@@ -94,7 +94,7 @@ function render_enable_authy_page( $user, $signature, $errors = array() ) {?>
     <body class='login wp-core-ui'>
       <div id="login">
         <h1><a href="http://wordpress.org/" title="Powered by WordPress"><?php echo get_bloginfo( 'name' ); ?></a></h1>
-        <h3 style="text-align: center; margin-bottom:10px;">Enable Authy Two-Factor Authentication</h3>
+        <h3 style="text-align: center; margin-bottom:10px;"><?php _e('Enable Authy Two-Factor Authentication', 'authy')?></h3>
         <?php
           if ( !empty( $errors ) ) {
             $message = '';
@@ -186,7 +186,7 @@ function authy_installation_form( $user, $user_data, $user_signature, $errors ) 
           <div class='step'>
             <div class='description-step'>
               <span class='number'>1.</span>
-              <span>On your phone browser go to <a href="https://www.authy.com/install" alt="install authy" style="padding-left: 18px;">https://www.authy.com/install</a></span>
+              <span><?php printf( __( 'On your phone browser go to <a href="%1$s" alt="install authy" style="padding-left: 18px;">%1$s</a>.', 'authy' ), 'https://www.authy.com/install' ); ?></span>
             </div>
             <img src="<?php echo plugins_url( '/assets/images/step1-image.png', __FILE__ ); ?>" alt='installation' />
           </div>
@@ -194,7 +194,7 @@ function authy_installation_form( $user, $user_data, $user_signature, $errors ) 
           <div class='step'>
             <div class='description-step'>
               <span class='number'>2.</span>
-              <span>Open the App and register.</span>
+              <span><?php printf( __('Open the App and register.', 'authy' ) ) ?></span>
             </div>
             <img src="<?php echo plugins_url( '/assets/images/step2-image.png', __FILE__ ); ?>" alt='smartphones' style='padding-left: 22px;' />
           </div>
@@ -273,7 +273,7 @@ function form_enable_on_modal( $users_key, $username, $authy_data, $errors ) {?>
   <?php wp_nonce_field( $users_key . '_ajax_check' ); ?>
 
   <p class="submit">
-    <input name="Continue" type="submit" value="<?php esc_attr_e( 'Continue' );?>" class="button-primary">
+    <input name="Continue" type="submit" value="<?php esc_attr_e( 'Continue', 'authy' );?>" class="button-primary">
   </p>
 <?php }
 
@@ -329,7 +329,7 @@ function render_disable_authy_on_modal( $users_key, $username ) { ?>
   <p><?php printf( __( 'Click the button below to disable Two-Factor Authentication for <strong>%s</strong>', 'authy' ), $username ); ?></p>
 
   <p class="submit">
-      <input name="Disable" type="submit" value="<?php esc_attr_e( 'Disable Authy' );?>" class="button-primary">
+      <input name="Disable" type="submit" value="<?php esc_attr_e( 'Disable Authy', 'authy' );?>" class="button-primary">
   </p>
   <input type="hidden" name="authy_step" value="disable" />
 
