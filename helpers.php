@@ -10,10 +10,12 @@ function authy_header( $step = '' ) { ?>
         <link rel="stylesheet" type="text/css" href="<?php echo admin_url( 'css/login.css' ); ?>" />
         <link rel="stylesheet" type="text/css" href="<?php echo admin_url( 'css/colors-fresh.css' ); ?>" />
         <?php
-      } else {
+      } elseif ( version_compare( $wp_version, '3.8', '<=' ) ) {
         wp_admin_css("wp-admin", true);
-        wp_admin_css("buttons", true);
         wp_admin_css("colors-fresh", true);
+        wp_admin_css("ie", true);
+      } else{
+        wp_admin_css("login", true);
       }
     ?>
     <link href="https://www.authy.com/form.authy.min.css" media="screen" rel="stylesheet" type="text/css">
@@ -61,7 +63,7 @@ function authy_token_form( $username, $user_data, $user_signature, $redirect, $r
           </strong>
         </p>
 
-        <form method="POST" id="authy" action="wp-login.php">
+        <form method="POST" id="authy" action="<?php echo wp_login_url(); ?>">
           <label for="authy_token">
             <?php _e( 'Authy Token', 'authy' ); ?>
             <br>

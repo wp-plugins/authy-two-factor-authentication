@@ -2,8 +2,8 @@
 Contributors: authy, ethitter
 Tags: authentication, authy, two factor, security, login, authenticate
 Requires at least: 3.0
-Tested up to: 3.8
-Stable tag: 2.5.3
+Tested up to: 3.9
+Stable tag: 2.5.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -41,6 +41,10 @@ As an admin, you can go to the users page. Then, select the user in the list, an
 1. Authy Two-Factor Authentication page.
 
 == Changelog ==
+
+= 2.5.4 =
+* Fixed the login styles for WordPress 3.9.
+* Fix the login url action when the hidden backend option is enabled in a security plugin.
 
 = 2.5.3 =
 * Fixed the include of color-fresh.css file, the file was renamed to colors.css on WordPress 3.8
