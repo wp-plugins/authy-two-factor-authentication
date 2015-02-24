@@ -4,7 +4,7 @@
  * Plugin URI: https://github.com/authy/authy-wordpress
  * Description: Add <a href="http://www.authy.com/">Authy</a> two-factor authentication to WordPress.
  * Author: Authy Inc
- * Version: 2.5.4
+ * Version: 2.5.5
  * Author URI: https://www.authy.com
  * License: GPL2+
  * Text Domain: authy
@@ -23,6 +23,8 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+
+define( 'AUTHY_VERSION', '2.5.5' );
 
 require_once 'helpers.php';
 
@@ -1125,7 +1127,6 @@ class Authy {
 
             // Check the specified token
             $authy_id = $this->get_user_authy_id( $user->ID );
-            $authy_token = preg_replace( '#[^\d]#', '', $authy_token );
             $api_response = $this->api->check_token( $authy_id, $authy_token );
 
             // Act on API response
@@ -1207,8 +1208,7 @@ class Authy {
         $authy_id = $data_temp['authy_id'];
 
         // Check the specified token
-        $authy_token = preg_replace( '#[^\d]#', '', $params['authy_token'] );
-        $check_token_response = $this->api->check_token( $authy_id, $authy_token );
+        $check_token_response = $this->api->check_token( $authy_id, $params['authy_token'] );
 
         if ( $check_token_response === true ) {
             // Save authy data of user on database
