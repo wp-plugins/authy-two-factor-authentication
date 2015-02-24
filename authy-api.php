@@ -53,6 +53,31 @@ class Authy_API {
   private function setup() {}
 
   /**
+   * Make a request to Authy API
+   *
+   * @param string $url Site URL to retrieve
+   * @param string $method
+   * @param array $args
+   * @return stdClass
+   */
+  public function request( $url, $args = array() ) {
+    $args['user-agent'] = 'AuthyWordPress/'. AUTHY_VERSION. ' ('. PHP_OS. '; WordPress ' . $GLOBALS['wp_version'] . ')';
+
+    $api_response = wp_remote_request($url, $args);
+    $status_code = wp_remote_retrieve_response_code($api_response);
+
+    $body = wp_remote_retrieve_body($api_response);
+    $body = json_decode($body);
+
+    $response = new stdClass;
+    $response->status_code = $status_code;
+    $response->body = $body;
+    $response->success = $body->success;
+
+    return $response;
+  }
+
+  /**
    * Attempt to retrieve an Authy ID for a given request
    *
    * @param string $email
@@ -77,15 +102,9 @@ class Authy_API {
     ), $endpoint );
 
     // Make API request and parse response
-    $response = wp_remote_post( $endpoint );
-    $status_code = wp_remote_retrieve_response_code( $response );
-
-    $body = wp_remote_retrieve_body( $response );
-
-    if ( ! empty( $body ) ) {
-      $body = json_decode( $body );
-
-      return $body;
+    $response = $this->request($endpoint, array('method' => 'POST'));
+    if ( !empty($response->body) ) {
+      return $response->body;
     }
 
     return false;
@@ -100,6 +119,15 @@ class Authy_API {
    * @return mixed
    */
   public function check_token( $id, $token ) {
+    // Sanitize arguments
+    $id = preg_replace( '#[^\d]#', '', $id );
+    $token = preg_replace( '#[^\d]#', '', $token );
+
+    // Validate the token length
+    if ( strlen( $token ) < 6 && strlen( $token ) > 10 ) {
+      return __( 'Invalid Authy Token.', 'authy' );
+    }
+
     // Build API endpoint
     // Token must be a string because it can have leading zeros
     $endpoint = sprintf( '%s/protected/json/verify/%s/%d', $this->api_endpoint, $token, $id );
@@ -109,18 +137,12 @@ class Authy_API {
     ), $endpoint );
 
     // Make API request up to three times and check responding status code
-    for ($i = 1; $i <= 3; $i++) {
-      $response = wp_remote_get($endpoint);
+    $response = $this->request($endpoint, array('method' => 'GET'));
 
-      $status_code = wp_remote_retrieve_response_code( $response );
-      $body = wp_remote_retrieve_body($response);
-      $body = json_decode($body);
-
-      if ( $status_code == 200 && strtolower($body->token)  == 'is valid') {
-        return true;
-      } elseif ( $status_code == 401) {
-        return __( 'Invalid Authy Token.', 'authy' );
-      }
+    if ( $response->status_code == 200 && strtolower($response->body->token)  == 'is valid' ) {
+      return true;
+    } elseif ( $response->status_code == 401) {
+      return __( 'Invalid Authy Token.', 'authy' );
     }
 
     return false;
@@ -133,6 +155,9 @@ class Authy_API {
   */
 
   public function request_sms($id, $force) {
+    // Sanitize the arguments
+    $id = preg_replace( '#[^\d]#', '', $id );
+
     $endpoint = sprintf( '%s/protected/json/sms/%d', $this->api_endpoint, $id );
     $arguments = array('api_key' => rawurlencode($this->api_key));
 
@@ -141,16 +166,13 @@ class Authy_API {
     }
 
     $endpoint = add_query_arg( $arguments, $endpoint);
-    $response = wp_remote_get($endpoint);
-    $status_code = wp_remote_retrieve_response_code($response);
-    $body = wp_remote_retrieve_body($response);
-    $body = json_decode($body);
+    $response = $this->request($endpoint, array('method' => 'GET'));
 
-    if ( $status_code == 200 ) {
+    if ( $response->status_code == 200 && $response->success == 'true' ) {
       return __( 'SMS token was sent. Please allow at least 1 minute for the text to arrive.', 'authy' );
     }
 
-    return __( $body->message, 'authy' );
+    return __( $response->body->message, 'authy' );
   }
 
   /**
@@ -160,14 +182,11 @@ class Authy_API {
   public function application_details() {
     $endpoint = sprintf( '%s/protected/json/app/details', $this->api_endpoint );
     $endpoint = add_query_arg( array('api_key' => rawurlencode($this->api_key)), $endpoint);
-    $response = wp_remote_get($endpoint);
 
-    $status_code = wp_remote_retrieve_response_code($response);
-    $body = wp_remote_retrieve_body($response);
-    $body = get_object_vars(json_decode($body));
+    $response = $this->request($endpoint, array('method' => 'GET'));
 
-    if ( $status_code == 200) {
-      return $body;
+    if ( $response->status_code == 200) {
+      return get_object_vars($response->body);
     }
 
     return array();

@@ -3,7 +3,7 @@ Contributors: authy, ethitter
 Tags: authentication, authy, two factor, security, login, authenticate
 Requires at least: 3.0
 Tested up to: 3.9
-Stable tag: 2.5.4
+Stable tag: 2.5.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -41,6 +41,10 @@ As an admin, you can go to the users page. Then, select the user in the list, an
 1. Authy Two-Factor Authentication page.
 
 == Changelog ==
+
+= 2.5.5 =
+* Customize the user agent for the request to the Authy API
+* Validate the format of the user id and tokens.
 
 = 2.5.4 =
 * Fixed the login styles for WordPress 3.9.
